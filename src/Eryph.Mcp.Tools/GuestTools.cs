@@ -15,7 +15,9 @@ public sealed class GuestTools(IGuestSessions sessions)
         'Get-Content'), on Linux guests the default shell running as root.
         Not suitable for interactive programs: there is no TTY and no stdin input. A command that
         waits for stdin blocks until the timeout, so redirect it (Linux: '< /dev/null') and use
-        non-interactive flags (e.g. apt-get -y, DEBIAN_FRONTEND=noninteractive).
+        non-interactive flags (e.g. apt-get -y, DEBIAN_FRONTEND=noninteractive). Interactive work
+        that needs a TTY belongs to real SSH ('ssh <catlet-id>.eryph.alt' after
+        'egs-tool catlet add-ssh-config <catlet-id> --add-key'), not to this tool.
         Requires a running catlet with guest services - call wait_for_provisioning first.
         """)]
     public Task<ExecResult> CatletExec(

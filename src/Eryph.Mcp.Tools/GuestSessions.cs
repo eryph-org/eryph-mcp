@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Xml;
 using Eryph.ComputeClient.Models;
 using Eryph.GuestServices.Client;
 using Microsoft.DevTunnels.Ssh;
@@ -91,7 +92,7 @@ public sealed class GuestSessions(IEryphApi api, OperationWaiter waiter, EryphMc
             catletId,
             new AddAccessKeyRequestBody(publicKey)
             {
-                Ttl = System.Xml.XmlConvert.ToString(KeyTtl),
+                Ttl = XmlConvert.ToString(KeyTtl),
                 ExpiresAt = DateTimeOffset.UtcNow + KeyTtl,
             },
             cancellation);

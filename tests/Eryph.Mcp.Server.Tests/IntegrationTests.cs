@@ -108,15 +108,13 @@ public class LinuxCatletTests(LinuxCatletFixture fixture) : IClassFixture<LinuxC
     }
 
     [Fact]
-    public async Task Exec_closes_stdin()
+    public async Task Exec_runs_stdin_reading_commands_with_redirected_stdin()
     {
-        var result = await ExecAsync("cat; echo done", timeoutSeconds: 20);
+        // guest services never close a command's stdin (also not for ssh exec),
+        // so the redirect the tool description asks for is what keeps it working.
+        var result = await ExecAsync("cat < /dev/null; echo done", timeoutSeconds: 20);
 
-        // Known guest-services bug: CommandForwarder copies the channel into the
-        // process stdin but never closes it, so the client's EOF does not reach
-        // the process. Reported as skipped until egs is fixed, then this passes.
-        if (result.GetProperty("timedOut").GetBoolean())
-            Assert.Skip("Known egs bug: the command's stdin is never closed (CommandForwarder).");
+        Assert.False(result.GetProperty("timedOut").GetBoolean());
         Assert.Equal("done\n", result.GetProperty("output").GetString());
     }
 

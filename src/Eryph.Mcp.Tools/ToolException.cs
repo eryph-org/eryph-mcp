@@ -30,10 +30,6 @@ public static class ToolErrors
         {
             return await action();
         }
-        catch (ToolException)
-        {
-            throw;
-        }
         catch (RequestFailedException ex)
         {
             throw new ToolException(DescribeRequestFailure(ex), CategorizeStatus(ex.Status));

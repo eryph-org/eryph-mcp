@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using Azure;
 using Eryph.ComputeClient.Models;
 using ModelContextProtocol.Server;
 
@@ -105,7 +106,7 @@ public sealed class ProvisioningTools(IEryphApi api, OperationWaiter waiter, Ery
             var operation = await waiter.WaitAsync(started.Value.Id, StatusBudget, cancellation);
             return operation.Result as GuestServicesStatusOperationResult;
         }
-        catch (Azure.RequestFailedException ex) when (ex.Status != 404)
+        catch (RequestFailedException ex) when (ex.Status != 404)
         {
             return null;
         }

@@ -2,6 +2,7 @@ using System.Text;
 using Microsoft.DevTunnels.Ssh;
 using Microsoft.DevTunnels.Ssh.Events;
 using Microsoft.DevTunnels.Ssh.Messages;
+using Buffer = Microsoft.DevTunnels.Ssh.Buffer;
 
 namespace Eryph.Mcp.Tools;
 
@@ -33,8 +34,8 @@ internal static class GuestCommand
             return new ExecResult(null, "", false, false, "The guest rejected the command request.");
         }
 
-        // No stdin: signal EOF so commands that read stdin do not wait forever.
-        await channel.SendAsync(Microsoft.DevTunnels.Ssh.Buffer.Empty, cancellation);
+        // No stdin is forwarded; tell the guest right away that none will follow.
+        await channel.SendAsync(Buffer.Empty, cancellation);
 
         var output = new CappedOutput(MaxOutputBytes);
         var timedOut = false;

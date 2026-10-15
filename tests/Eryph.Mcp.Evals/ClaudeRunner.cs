@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Globalization;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 
@@ -62,7 +63,7 @@ public static class ClaudeRunner
                      "--permission-mode", "dontAsk",
                      "--setting-sources", "project",
                      "--max-turns", scenario.MaxTurns.ToString(),
-                     "--max-budget-usd", scenario.MaxBudgetUsd.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                     "--max-budget-usd", scenario.MaxBudgetUsd.ToString(CultureInfo.InvariantCulture),
                      "--no-session-persistence",
                      "--output-format", "stream-json",
                      "--verbose",
