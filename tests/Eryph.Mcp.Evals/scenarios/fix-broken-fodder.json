@@ -1,0 +1,32 @@
+{
+  "id": "fix-broken-fodder",
+  "description": "Diagnose and fix a catlet definition whose fodder fails during provisioning.",
+  "prompt": "The following catlet definition is supposed to install htop and create the file /etc/eval-marker containing 'ok', but it does not provision correctly:\n\nname: {{name}}\nparent: dbosoft/ubuntu-24.04/starter\nfodder:\n- name: setup\n  type: shellscript\n  content: |\n    #!/bin/bash\n    set -e\n    apt-get update\n    apt-get install -y htopp\n    echo ok > /etc/eval-marker\n\nDeploy it, find out why provisioning fails, fix the definition and make sure that in the end a catlet named {{name}} exists that provisions successfully and fulfills the purpose. Remove broken catlets you no longer need. Only create catlets whose names start with {{name}}.",
+  "maxTurns": 50,
+  "maxBudgetUsd": 4,
+  "timeoutMinutes": 40,
+  "checks": [
+    {
+      "type": "provisioning",
+      "expect": "completed"
+    },
+    {
+      "type": "exec",
+      "name": "marker written",
+      "command": "cat /etc/eval-marker",
+      "expect": "^ok\\s*$"
+    },
+    {
+      "type": "exec",
+      "name": "htop installed",
+      "command": "command -v htop",
+      "expect": "htop"
+    },
+    {
+      "type": "exec",
+      "name": "fixed in fodder",
+      "command": "grep -lw htop /var/lib/cloud/instance/scripts/* /var/lib/cloud/instance/cloud-config.txt | wc -l",
+      "expect": "^[1-9]"
+    }
+  ]
+}

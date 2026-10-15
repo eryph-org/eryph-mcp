@@ -1,0 +1,281 @@
+[
+  {
+    "name": "catlet_exec",
+    "description": "Runs a non-interactive command in a catlet guest through eryph guest services (no SSH\nsetup, no admin rights, works off-host). stdout and stderr are merged into one output.\nThe command runs in the guest\u0027s configured shell: on Windows guests this is PowerShell\nby default (note: \u0027sc\u0027 and \u0027type\u0027 are PowerShell aliases there - use \u0027sc.exe\u0027 or\n\u0027Get-Content\u0027), on Linux guests the default shell running as root.\nNot suitable for interactive programs: there is no TTY and no stdin input. A command that\nwaits for stdin blocks until the timeout, so redirect it (Linux: \u0027\u003C /dev/null\u0027) and use\nnon-interactive flags (e.g. apt-get -y, DEBIAN_FRONTEND=noninteractive).\nRequires a running catlet with guest services - call wait_for_provisioning first.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "catletId": {
+          "description": "The catlet id.",
+          "type": "string"
+        },
+        "command": {
+          "description": "The command line to run.",
+          "type": "string"
+        },
+        "timeoutSeconds": {
+          "description": "Seconds before the command is aborted (default 300).",
+          "type": "integer",
+          "default": 300
+        }
+      },
+      "required": [
+        "catletId",
+        "command"
+      ]
+    }
+  },
+  {
+    "name": "deploy_catlet",
+    "description": "Creates a new catlet (VM) from a catlet configuration. The catlet is created stopped;\ncall start_catlet afterwards. Creation can take several minutes when genes have to be\ndownloaded. If it is not finished within waitSeconds, the result contains the operation\nid and status \u0027running\u0027 - continue with get_operation.\nCatlet names must be unique within a project. Develop fodder incrementally: deploy with\na minimal configuration first, verify it, then add one fodder item at a time.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "config": {
+          "description": "The catlet configuration as YAML (or JSON).",
+          "type": "string"
+        },
+        "variables": {
+          "description": "Optional variable values by name.",
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "default": null
+        },
+        "name": {
+          "description": "Overrides the catlet name from the configuration.",
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null
+        },
+        "project": {
+          "description": "Overrides the project from the configuration (default: \u0027default\u0027).",
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null
+        },
+        "waitSeconds": {
+          "description": "Seconds to wait for the creation to finish (default 600).",
+          "type": "integer",
+          "default": 600
+        }
+      },
+      "required": [
+        "config"
+      ]
+    },
+    "annotations": {
+      "destructiveHint": false
+    }
+  },
+  {
+    "name": "get_catlet",
+    "description": "Gets a catlet by id, including its status and provisioning status.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "catletId": {
+          "description": "The catlet id.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "catletId"
+      ]
+    },
+    "annotations": {
+      "idempotentHint": true,
+      "readOnlyHint": true
+    }
+  },
+  {
+    "name": "get_operation",
+    "description": "Gets (and optionally waits for) an eryph operation, e.g. one returned by deploy_catlet.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "operationId": {
+          "description": "The operation id.",
+          "type": "string"
+        },
+        "waitSeconds": {
+          "description": "Seconds to wait for the operation to finish (0 = return immediately).",
+          "type": "integer",
+          "default": 0
+        }
+      },
+      "required": [
+        "operationId"
+      ]
+    },
+    "annotations": {
+      "readOnlyHint": true
+    }
+  },
+  {
+    "name": "get_provisioning_log",
+    "description": "Gets the provisioning log of a catlet guest (fodder / cloud-init execution), including failed steps.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "catletId": {
+          "description": "The catlet id.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "catletId"
+      ]
+    },
+    "annotations": {
+      "idempotentHint": true,
+      "readOnlyHint": true
+    }
+  },
+  {
+    "name": "list_catlets",
+    "description": "Lists catlets, optionally filtered by project name. Catlet names are not unique; use the catlet id.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "project": {
+          "description": "Optional project name.",
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null
+        }
+      }
+    },
+    "annotations": {
+      "idempotentHint": true,
+      "readOnlyHint": true
+    }
+  },
+  {
+    "name": "remove_catlet",
+    "description": "Deletes a catlet including its disks. This cannot be undone.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "catletId": {
+          "description": "The catlet id.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "catletId"
+      ]
+    },
+    "annotations": {
+      "destructiveHint": true
+    }
+  },
+  {
+    "name": "start_catlet",
+    "description": "Starts a catlet. Afterwards use wait_for_provisioning before running commands in it.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "catletId": {
+          "description": "The catlet id.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "catletId"
+      ]
+    }
+  },
+  {
+    "name": "stop_catlet",
+    "description": "Stops a catlet. Use \u0027shutdown\u0027 for a graceful stop; \u0027hard\u0027 or \u0027kill\u0027 when the guest does not react.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "catletId": {
+          "description": "The catlet id.",
+          "type": "string"
+        },
+        "mode": {
+          "description": "\u0027shutdown\u0027 (graceful, default), \u0027hard\u0027 (power off) or \u0027kill\u0027.",
+          "type": "string",
+          "default": "shutdown"
+        }
+      },
+      "required": [
+        "catletId"
+      ]
+    }
+  },
+  {
+    "name": "validate_catlet",
+    "description": "Validates a catlet configuration (YAML or JSON) without creating anything.\nRuns the schema/semantic validation and then expands the configuration: parents are\nresolved, inherited fodder is merged and referenced genes are looked up (genes may be\ndownloaded from the genepool, which can take a while on first use).\nReturns the errors or the fully expanded configuration. Always validate before deploy_catlet.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "config": {
+          "description": "The catlet configuration as YAML (or JSON).",
+          "type": "string"
+        },
+        "variables": {
+          "description": "Optional variable values by name.",
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "default": null
+        }
+      },
+      "required": [
+        "config"
+      ]
+    },
+    "annotations": {
+      "idempotentHint": true,
+      "readOnlyHint": true
+    }
+  },
+  {
+    "name": "wait_for_provisioning",
+    "description": "Waits until the guest of a started catlet has finished provisioning (all fodder applied).\nGuest services reporting \u0027available\u0027 is not enough - this waits for the provisioning\nstate \u0027completed\u0027 (or \u0027failed\u0027). On failure the failed provisioning steps are returned;\nuse get_provisioning_log for the full log. If provisioning never starts or hangs, an\nearlier fodder item most likely failed: simplify the fodder instead of debugging the network.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "catletId": {
+          "description": "The catlet id.",
+          "type": "string"
+        },
+        "timeoutSeconds": {
+          "description": "Seconds to wait (default 900).",
+          "type": "integer",
+          "default": 900
+        }
+      },
+      "required": [
+        "catletId"
+      ]
+    },
+    "annotations": {
+      "readOnlyHint": true
+    }
+  }
+]

@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Eryph.Mcp.Server/Eryph.Mcp.Server.csproj" />
+    <Project Path="src/Eryph.Mcp.Tools/Eryph.Mcp.Tools.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Eryph.Mcp.Evals/Eryph.Mcp.Evals.csproj" />
+    <Project Path="tests/Eryph.Mcp.Server.Tests/Eryph.Mcp.Server.Tests.csproj" />
+    <Project Path="tests/Eryph.Mcp.Tools.Tests/Eryph.Mcp.Tools.Tests.csproj" />
+  </Folder>
+</Solution>

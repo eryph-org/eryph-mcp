@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Host-independent MCP tool implementations. Kept separate from the stdio
+       host so the same tools can later be hosted elsewhere. -->
+
+  <ItemGroup>
+    <PackageReference Include="ModelContextProtocol" Version="2.2.0" />
+    <PackageReference Include="Eryph.ComputeClient" Version="0.17.0" />
+    <PackageReference Include="Eryph.ClientRuntime.Configuration" Version="0.10.0" />
+    <PackageReference Include="Eryph.ConfigModel.Catlets.Json" Version="0.10.0" />
+    <PackageReference Include="Eryph.ConfigModel.Catlets.Yaml" Version="0.10.0" />
+    <PackageReference Include="Eryph.GuestServices.Client" Version="0.7.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Eryph.Mcp.Tools.Tests" />
+  </ItemGroup>
+
+</Project>

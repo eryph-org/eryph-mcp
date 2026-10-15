@@ -1,0 +1,7 @@
+bin/
+obj/
+.vs/
+*.user
+# stray file from a mis-redirected ping (Windows reserved name)
+nul
+results/

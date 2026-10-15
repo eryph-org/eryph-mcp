@@ -1,0 +1,13 @@
+{
+  "id": "nginx-page",
+  "description": "Build a Linux catlet that serves a page with nginx, configured through fodder.",
+  "prompt": "Create a Linux catlet based on Ubuntu 24.04 named {{name}} that serves an HTML page containing the text 'eryph-eval-ok' with nginx on port 80. The configuration must be part of the catlet definition (fodder), not applied manually after deployment. Make sure the catlet is fully provisioned and verify the page from inside the catlet. Leave the catlet running. Only create catlets whose names start with {{name}}.",
+  "maxTurns": 40,
+  "maxBudgetUsd": 3,
+  "timeoutMinutes": 30,
+  "checks": [
+    { "type": "provisioning", "expect": "completed" },
+    { "type": "exec", "name": "page served", "command": "curl -s http://localhost/", "expect": "eryph-eval-ok" },
+    { "type": "exec", "name": "configured via fodder", "command": "grep -l nginx /var/lib/cloud/instance/scripts/* /var/lib/cloud/instance/cloud-config.txt | wc -l", "expect": "^[1-9]" }
+  ]
+}

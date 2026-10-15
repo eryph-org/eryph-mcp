@@ -1,0 +1,13 @@
+{
+  "id": "windows-iis",
+  "description": "Build a Windows Server catlet with IIS installed through fodder.",
+  "slow": true,
+  "prompt": "Create a Windows Server 2022 catlet named {{name}} with the IIS web server installed. The installation must be part of the catlet definition (fodder), not applied manually after deployment. Make sure the catlet is fully provisioned and verify that the default web site answers on http://localhost from inside the catlet. Leave the catlet running. Only create catlets whose names start with {{name}}.",
+  "maxTurns": 40,
+  "maxBudgetUsd": 3,
+  "timeoutMinutes": 60,
+  "checks": [
+    { "type": "provisioning", "expect": "completed" },
+    { "type": "exec", "name": "iis answers", "command": "(Invoke-WebRequest http://localhost -UseBasicParsing).StatusCode", "expect": "200" }
+  ]
+}

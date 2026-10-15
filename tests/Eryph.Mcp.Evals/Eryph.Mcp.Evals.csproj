@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Level 4: model-in-the-loop evals. Runs Claude Code headless against the
+       built eryph-mcp server and grades the resulting catlets via the server. -->
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="ModelContextProtocol" Version="2.2.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\Eryph.Mcp.Server.Tests\EryphMcpServer.cs" Link="EryphMcpServer.cs" />
+    <None Include="scenarios\*.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Eryph.Mcp.Server\Eryph.Mcp.Server.csproj" ReferenceOutputAssembly="false" />
+  </ItemGroup>
+
+</Project>
