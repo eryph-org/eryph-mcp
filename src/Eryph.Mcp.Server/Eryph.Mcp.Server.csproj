@@ -3,6 +3,11 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <AssemblyName>eryph-mcp</AssemblyName>
+    <PackAsTool>true</PackAsTool>
+    <ToolCommandName>eryph-mcp</ToolCommandName>
+    <PackageId>Eryph.Mcp.Server</PackageId>
+    <Version>0.1.1</Version>
+    <Description>stdio MCP server for eryph: create, run and inspect catlets with the user's eryph client credentials.</Description>
   </PropertyGroup>
 
   <ItemGroup>

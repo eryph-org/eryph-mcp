@@ -29,6 +29,15 @@ public sealed class CatletConfigs(IEryphApi api, OperationWaiter waiter)
         }
     }
 
+    // eryph requires a name; a configuration without one gets eryph's usual
+    // default instead of failing with "$.name: The Name is required".
+    public static string EnsureName(CatletConfig config)
+    {
+        if (string.IsNullOrWhiteSpace(config.Name))
+            config.Name = "catlet";
+        return config.Name;
+    }
+
     public static JsonElement ToJson(CatletConfig config) => CatletConfigJsonSerializer.SerializeToElement(config);
 
     public static string ToYaml(JsonElement configuration) =>

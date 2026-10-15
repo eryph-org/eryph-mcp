@@ -64,12 +64,29 @@ public class CatletToolsTests
         _eryph.SetupOperation("expand", Op("expand", OperationStatus.Completed,
             result: ConfigResult("""{"name":"t1","parent":"dbosoft/ubuntu-24.04/starter-1.0"}""")));
 
-        var result = await _tools.ValidateCatlet(MinimalYaml, new() { ["unknownVar"] = "x" }, Ct);
+        var result = await _tools.ValidateCatlet(MinimalYaml, new() { ["unknownVar"] = "x" }, cancellation: Ct);
 
         Assert.True(result.IsValid);
         Assert.Contains("parent: dbosoft/ubuntu-24.04/starter-1.0", result.ExpandedConfig);
         Assert.DoesNotContain("\r", result.ExpandedConfig);
         Assert.Equal(["unknownVar"], result.UnknownVariables);
+    }
+
+    [Fact]
+    public async Task Validate_gives_a_configuration_without_name_the_default_name()
+    {
+        _eryph.Catlets.ValidateConfigAsync(Arg.Any<ValidateConfigRequest>(), Arg.Any<CancellationToken>())
+            .Returns(Ok(EryphComputeClientModelFactory.CatletConfigValidationResult(true, [])));
+        _eryph.Catlets.ExpandNewConfigAsync(Arg.Any<ExpandNewCatletConfigRequest>(), Arg.Any<CancellationToken>())
+            .Returns(_ => Started("expand"));
+        _eryph.SetupOperation("expand", Op("expand", OperationStatus.Completed,
+            result: ConfigResult("""{"name":"catlet"}""")));
+
+        await _tools.ValidateCatlet("parent: dbosoft/ubuntu-24.04/starter\n", cancellation: Ct);
+
+        await _eryph.Catlets.Received().ValidateConfigAsync(
+            Arg.Is<ValidateConfigRequest>(r => r.Configuration.GetProperty("name").GetString() == "catlet"),
+            Arg.Any<CancellationToken>());
     }
 
     [Fact]

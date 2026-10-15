@@ -243,6 +243,14 @@
             ]
           },
           "default": null
+        },
+        "name": {
+          "description": "Overrides the catlet name from the configuration, as deploy_catlet does.",
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null
         }
       },
       "required": [

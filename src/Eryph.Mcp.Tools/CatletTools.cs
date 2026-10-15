@@ -42,10 +42,14 @@ public sealed class CatletTools(IEryphApi api, OperationWaiter waiter, CatletCon
     public Task<ValidationResult> ValidateCatlet(
         [Description("The catlet configuration as YAML (or JSON).")] string config,
         [Description("Optional variable values by name.")] Dictionary<string, string>? variables = null,
+        [Description("Overrides the catlet name from the configuration, as deploy_catlet does.")] string? name = null,
         CancellationToken cancellation = default) =>
         ToolErrors.Guard(async () =>
         {
             var catletConfig = CatletConfigs.Parse(config);
+            if (!string.IsNullOrWhiteSpace(name))
+                catletConfig.Name = name;
+            CatletConfigs.EnsureName(catletConfig);
 
             var validation = (await api.Catlets().ValidateConfigAsync(
                 new ValidateConfigRequest(CatletConfigs.ToJson(catletConfig)), cancellation)).Value;
@@ -120,7 +124,7 @@ public sealed class CatletTools(IEryphApi api, OperationWaiter waiter, CatletCon
             if (!string.IsNullOrWhiteSpace(project))
                 catletConfig.Project = project;
 
-            var catletName = string.IsNullOrWhiteSpace(catletConfig.Name) ? "catlet" : catletConfig.Name;
+            var catletName = CatletConfigs.EnsureName(catletConfig);
             var projectName = string.IsNullOrWhiteSpace(catletConfig.Project) ? "default" : catletConfig.Project;
             await EnsureNameIsFreeAsync(catletName, projectName, cancellation);
 

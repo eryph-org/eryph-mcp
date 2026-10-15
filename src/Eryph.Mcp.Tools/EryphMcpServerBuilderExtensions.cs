@@ -21,8 +21,12 @@ public static class EryphMcpServerBuilderExtensions
           Read get_provisioning_log and simplify the fodder - do not debug networking or try SSH via IP.
         - Use {{ variable }} syntax for variables in catlet YAML; variables are a list of objects with name/value.
         - Fodder genes are referenced as gene:org/geneset[/tag]:fodder-name.
-        - Inline fodder items have name, type (cloud-config or shellscript) and content. On Windows a
-          shellscript item also needs filename (e.g. filename: setup.ps1); the extension selects the interpreter.
+        - Inline fodder items have name, type (cloud-config or shellscript) and content. On Windows give a
+          shellscript item a filename (e.g. filename: setup.ps1 - the key is filename, not file_name); the
+          extension selects the interpreter.
+        - Windows catlets are provisioned by eryph guest services, Linux catlets by cloud-init. Windows accepts
+          full cloud-config but ignores Linux-only keys such as packages; install software with scripts there.
+          A failing Windows script does not stop later scripts - check the provisioning log.
         """;
 
     public static IMcpServerBuilder AddEryphTools(this IMcpServerBuilder builder, EryphMcpOptions? options = null)
