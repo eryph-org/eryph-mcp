@@ -1,8 +1,9 @@
-# Release pipeline for the eryph MCP server (Azure DevOps, dbosoft public project).
+# Build pipeline for the eryph MCP server (Azure DevOps, dbosoft public project).
 #
-# Builds and tests on every run, packs the `eryph-mcp` .NET tool, and on a version
-# tag (refs/tags/v*) pushes the package to nuget.org via the `eryph nuget.org`
-# service connection.
+# Builds and tests on every run and packs the `eryph-mcp` .NET tool into the
+# 'packages' build artifact. Publishing to nuget.org is done by the separate
+# classic release definition ("eryph-mcp"), which deploys this artifact - the same
+# split the other eryph .NET repos use.
 #
 # Versioning follows the eryph convention (GitVersion + tags), including the
 # GitVersion 6.x tag fix used by the shared build template: GitVersion 6 does not
@@ -122,19 +123,10 @@ jobs:
       versioningScheme: 'off'
       buildProperties: '$(versionPackProps)'
 
+  # The 'packages' artifact is what the release definition deploys to nuget.org.
   - task: PublishBuildArtifacts@1
     displayName: publish package artifact
     inputs:
       PathtoPublish: '$(Build.ArtifactStagingDirectory)/packages'
       ArtifactName: 'packages'
       publishLocation: 'Container'
-
-  # Release only: push the tagged package to nuget.org.
-  - task: NuGetCommand@2
-    displayName: push to nuget.org
-    condition: and(succeeded(), eq(variables['isTagBuild'], 'true'))
-    inputs:
-      command: 'push'
-      packagesToPush: '$(Build.ArtifactStagingDirectory)/packages/**/*.nupkg;!$(Build.ArtifactStagingDirectory)/packages/**/*.symbols.nupkg'
-      nuGetFeedType: 'external'
-      publishFeedCredentials: 'eryph nuget.org'
