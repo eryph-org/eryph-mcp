@@ -11,6 +11,8 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # full history + tags for GitVersion
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v4

@@ -1,0 +1,5 @@
+assembly-versioning-scheme: MajorMinor
+branches:
+  main:
+    deployment-mode: ContinuousDelivery
+    label: ci

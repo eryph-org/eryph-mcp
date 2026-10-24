@@ -1,0 +1,135 @@
+# Release pipeline for the eryph MCP server (Azure DevOps, dbosoft public project).
+#
+# Builds and tests on every run, packs the `eryph-mcp` .NET tool, and on a version
+# tag (refs/tags/v*) pushes the package to nuget.org via the `eryph nuget.org`
+# service connection.
+#
+# Versioning follows the eryph convention (GitVersion + tags), including the
+# GitVersion 6.x tag fix used by the shared build template: GitVersion 6 does not
+# handle tag builds cleanly - it relabels/finalises pre-release tags and trips over
+# the Azure detached-HEAD checkout (GitTools/GitVersion#4534). So tag builds take
+# the version verbatim from the tag and disable the GitVersion MSBuild task; only
+# branch/CI builds let GitVersion compute the version.
+
+trigger:
+  branches:
+    include:
+    - main
+  tags:
+    include:
+    - v*
+
+pr:
+  branches:
+    include:
+    - main
+
+jobs:
+- job: Build
+  pool:
+    vmImage: windows-latest
+
+  variables:
+    buildConfiguration: 'Release'
+
+  steps:
+  # Full history + tags so GitVersion can compute branch (CI) versions; the default
+  # shallow checkout hides the baseline tag.
+  - checkout: self
+    fetchDepth: 0
+
+  - task: UseDotNet@2
+    displayName: Install .NET SDK
+    inputs:
+      packageType: sdk
+      useGlobalJson: true
+
+  - task: gitversion/setup@3
+    displayName: Install GitVersion
+    inputs:
+      versionSpec: '6.7.x'
+
+  # Tag builds: version taken verbatim from the tag, GitVersion task disabled.
+  # Branch builds: GitVersion.MsBuild computes the version during build/pack.
+  - powershell: |
+      $src = "$(Build.SourceBranch)"
+      Write-Host "Build.SourceBranch = $src"
+      if ($src -like 'refs/tags/v*') {
+          $ver = $src.Substring('refs/tags/v'.Length)
+          # Accept only a plain SemVer (optionally with a pre-release label). This rejects
+          # malformed tags, build metadata ('+'), and characters that could be injected into
+          # the ##vso[...] logging commands or MSBuild properties below.
+          if ($ver -notmatch '^\d+\.\d+\.\d+(-[0-9A-Za-z][0-9A-Za-z.-]*)?$') {
+              Write-Error "Tag '$src' is not a valid release version (expected vX.Y.Z[-prerelease])."
+              exit 1
+          }
+          Write-Host "Tag build -> $ver (version verbatim, GitVersion task disabled)"
+          Write-Host "##vso[task.setvariable variable=isTagBuild]true"
+          Write-Host "##vso[task.setvariable variable=versionBuildArgs]-p:DisableGitVersionTask=true -p:Version=$ver"
+          Write-Host "##vso[task.setvariable variable=versionPackProps]DisableGitVersionTask=true;Version=$ver"
+          Write-Host "##vso[build.updatebuildnumber]$ver"
+      } else {
+          Write-Host "Branch build -> GitVersion computes the version"
+          Write-Host "##vso[task.setvariable variable=isTagBuild]false"
+          Write-Host "##vso[task.setvariable variable=versionBuildArgs]"
+          Write-Host "##vso[task.setvariable variable=versionPackProps]"
+      }
+    displayName: 'Resolve version source'
+
+  # Branch (CI) builds only. On tag builds the version comes from the tag above.
+  - task: gitversion/execute@3
+    displayName: Execute GitVersion
+    condition: ne(variables['isTagBuild'], 'true')
+
+  - task: DotNetCoreCLI@2
+    displayName: dotnet restore
+    inputs:
+      command: 'restore'
+      restoreArguments: '--disable-parallel'
+      feedsToUse: 'config'
+      nugetConfigPath: './nuget.config'
+
+  - task: DotNetCoreCLI@2
+    displayName: dotnet build
+    inputs:
+      command: build
+      projects: '**/*.csproj'
+      arguments: '--configuration $(buildConfiguration) --no-restore $(versionBuildArgs)'
+
+  # Unit and contract tests. Integration/eval tests are gated behind environment
+  # variables (ERYPH_MCP_INTEGRATION / ERYPH_MCP_WINDOWS) and stay skipped here.
+  - task: DotNetCoreCLI@2
+    displayName: dotnet test
+    inputs:
+      command: test
+      projects: '**/*Tests/*.csproj'
+      arguments: '--configuration $(buildConfiguration) --no-build'
+
+  # Packs only the server project; it is the published tool (Eryph.Mcp.Tools is not
+  # packable). The tool package bundles its dependencies, so no separate library
+  # package is pushed.
+  - task: DotNetCoreCLI@2
+    displayName: dotnet pack (eryph-mcp tool)
+    inputs:
+      command: 'pack'
+      packagesToPack: 'src/Eryph.Mcp.Server/Eryph.Mcp.Server.csproj'
+      packDirectory: '$(Build.ArtifactStagingDirectory)/packages'
+      versioningScheme: 'off'
+      buildProperties: '$(versionPackProps)'
+
+  - task: PublishBuildArtifacts@1
+    displayName: publish package artifact
+    inputs:
+      PathtoPublish: '$(Build.ArtifactStagingDirectory)/packages'
+      ArtifactName: 'packages'
+      publishLocation: 'Container'
+
+  # Release only: push the tagged package to nuget.org.
+  - task: NuGetCommand@2
+    displayName: push to nuget.org
+    condition: and(succeeded(), eq(variables['isTagBuild'], 'true'))
+    inputs:
+      command: 'push'
+      packagesToPush: '$(Build.ArtifactStagingDirectory)/packages/**/*.nupkg;!$(Build.ArtifactStagingDirectory)/packages/**/*.symbols.nupkg'
+      nuGetFeedType: 'external'
+      publishFeedCredentials: 'eryph nuget.org'

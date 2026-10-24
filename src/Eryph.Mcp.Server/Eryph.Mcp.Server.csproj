@@ -6,7 +6,6 @@
     <PackAsTool>true</PackAsTool>
     <ToolCommandName>eryph-mcp</ToolCommandName>
     <PackageId>Eryph.Mcp.Server</PackageId>
-    <Version>0.1.1</Version>
     <Description>stdio MCP server for eryph: create, run and inspect catlets with the user's eryph client credentials.</Description>
     <Authors>dbosoft</Authors>
     <Company>dbosoft</Company>
@@ -27,6 +26,12 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.0" />
+    <!-- Version comes from GitVersion (branch/CI builds) or the release tag (the
+         pipeline passes -p:Version and disables this task on tag builds). -->
+    <PackageReference Include="GitVersion.MsBuild" Version="6.7.0">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
   </ItemGroup>
 
   <ItemGroup>

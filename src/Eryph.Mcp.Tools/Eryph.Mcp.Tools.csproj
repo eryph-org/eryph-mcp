@@ -1,7 +1,12 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <!-- Host-independent MCP tool implementations. Kept separate from the stdio
-       host so the same tools can later be hosted elsewhere. -->
+       host so the same tools can later be hosted elsewhere. Not published on its
+       own; the eryph-mcp tool package bundles this assembly. -->
+
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="ModelContextProtocol" Version="2.2.0" />
