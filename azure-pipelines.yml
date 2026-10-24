@@ -98,12 +98,17 @@ jobs:
 
   # Unit and contract tests. Integration/eval tests are gated behind environment
   # variables (ERYPH_MCP_INTEGRATION / ERYPH_MCP_WINDOWS) and stay skipped here.
+  # publishTestResults:false keeps the task from appending the VSTest-style
+  # '--logger trx' arguments, which the Microsoft.Testing.Platform runner (set in
+  # global.json) rejects with exit code 5. A real test failure still fails the task
+  # via its exit code. Per-test results are reported by the GitHub CI workflow.
   - task: DotNetCoreCLI@2
     displayName: dotnet test
     inputs:
       command: test
       projects: '**/*Tests/*.csproj'
       arguments: '--configuration $(buildConfiguration) --no-build'
+      publishTestResults: false
 
   # Packs only the server project; it is the published tool (Eryph.Mcp.Tools is not
   # packable). The tool package bundles its dependencies, so no separate library
