@@ -1,0 +1,33 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-and-test:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      - name: Restore
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build --no-restore --configuration Release
+
+      # Level 1 (unit) and level 2 (contract) tests only. They need no eryph
+      # installation. Integration and eval tests are gated behind environment
+      # variables and are not run in CI.
+      - name: Unit tests
+        run: dotnet test tests/Eryph.Mcp.Tools.Tests --no-build --configuration Release
+
+      - name: Contract tests
+        run: dotnet test tests/Eryph.Mcp.Server.Tests --no-build --configuration Release

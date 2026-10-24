@@ -67,7 +67,7 @@ public sealed class LinuxCatletFixture : IAsyncLifetime
 
     public async ValueTask DisposeAsync()
     {
-        if (Server is null)
+        if (Environment.GetEnvironmentVariable("ERYPH_MCP_INTEGRATION") != "1")
             return;
 
         await Integration.RemoveAsync(Server, CatletId);

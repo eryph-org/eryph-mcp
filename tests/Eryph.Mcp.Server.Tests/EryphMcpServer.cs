@@ -85,7 +85,12 @@ public sealed class EryphMcpServer : IAsyncDisposable
     {
         var result = await CallAsync(tool, arguments, cancellation);
         if (result.IsError == true)
-            throw new InvalidOperationException($"Tool '{tool}' failed: {Text(result)}");
+        {
+            var diagnostics = StandardError.Count > 0
+                ? $"\nServer stderr:\n{string.Join("\n", StandardError.TakeLast(20))}"
+                : "";
+            throw new InvalidOperationException($"Tool '{tool}' failed: {Text(result)}{diagnostics}");
+        }
 
         return JsonDocument.Parse(Text(result)).RootElement.Clone();
     }

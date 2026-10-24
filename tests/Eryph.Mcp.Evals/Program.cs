@@ -28,9 +28,13 @@ await using var server = await EryphMcpServer.StartAsync();
 var grader = new Grader(server);
 var results = new List<EvalResult>();
 
-foreach (var scenario in scenarios)
-foreach (var model in models)
-for (var run = 1; run <= repeat; run++)
+var combinations =
+    from scenario in scenarios
+    from model in models
+    from run in Enumerable.Range(1, repeat)
+    select (scenario, model, run);
+
+foreach (var (scenario, model, run) in combinations)
 {
     var catletName = $"eval-{scenario.Id}-{Guid.NewGuid().ToString("N")[..4]}";
     var prompt = scenario.Prompt.Replace("{{name}}", catletName);
